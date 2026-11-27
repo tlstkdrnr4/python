@@ -39,10 +39,24 @@ else :
     temp = [{"product": "book", "quantity": 2, "price": 12000}, {"product": "pen", "quantity": 5, "price": 1500}]
     base_rows.extend(temp)
 
+tab1, tab2 , tab3 = st.tabs(["📊 매출 대시보드", "💳 POS 주문 입력", "💬 매출 도우미 챗봇"])
+with tab2 :
+    st.subheader("신규 현장 주문 등록")
+    with st.form("pos_form" , clear_on_submit=True) : 
+        p_name = st.text_input("상품명 (1~40자)")
+        c1 , c2 = st.columns(2)
+        p_qty = c1.number_input("수량" , min_value=1 , max_value=1000 , value=1) 
+        p_price = c2.number_input("단가 (원)" , min_value=100 , max_value=1_000_000 , value=5000, step=5000)
+        submitted = st.form_submit_button("주문 추가")
+        clean_name = p_name.strip()
+    if submitted:
+        if not clean_name or len(clean_name) > 40 :
+            st.error("상품명은 공백 제외 1~40글자로 입력하세요")
+        else:
+            st.session_state.pos_orders.append({"product" : clean_name, "quantity" : int(p_qty) , "price" : int(p_price)})
+            st.success(f"{clean_name} {p_qty} 개 (총 {p_qty * p_price :,}원) 주문이 등록되었습니다")
 all_rows = base_rows + st.session_state.pos_orders
 st.write(f"총 {len(all_rows)}건의 매출 데이터가 있습니다.")
-
-tab1, tab2 , tab3 = st.tabs(["📊 매출 대시보드", "💳 POS 주문 입력", "💬 매출 도우미 챗봇"])
 
 with tab1 :
     selected = st.selectbox("상품 선택" , ["전체"] + sorted({row["product"] for row in all_rows}))
@@ -65,23 +79,7 @@ with tab1 :
         st.subheader("상품별 매출 비중")
         if summary["by_product"] :
             st.bar_chart(summary["by_product"])
-
-with tab2 :
-    st.subheader("신규 현장 주문 등록")
-    with st.form("pos_form" , clear_on_submit=True) : 
-        p_name = st.text_input("상품명 (1~40자)")
-        c1 , c2 = st.columns(2)
-        p_qty = c1.number_input("수량" , min_value=1 , max_value=1000 , value=1) 
-        p_price = c2.number_input("단가 (원)" , min_value=100 , max_value=1_000_000 , value=5000, step=5000)
-        submitted = st.form_submit_button("주문 추가")
-        clean_name = p_name.strip()
-    if submitted:
-        if not clean_name or len(clean_name) > 40 :
-            st.error("상품명은 공백 제외 1~40글자로 입력하세요")
-        else:
-            st.session_state.pos_orders.append({"product" : clean_name, "quantity" : int(p_qty) , "price" : int(p_price)})
-            st.success(f"{clean_name} {p_qty} 개 (총 {p_qty * p_price :,}원) 주문이 등록되었습니다")
-
+            
 
 with tab3:
     st.subheader("데이터 기반 간단 Q&A")
